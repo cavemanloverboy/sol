@@ -20,6 +20,7 @@ num-format = "0.4.4"
 prettytable-rs = "0.10.0"
 solana-client = "1.16.24"
 solana-sdk = "1.17.15"
+solana-cli-config = "1.17.15"
 solana-transaction-status = "1.17.15"
 terminal_size = "0.3.0"
 tokio = { version = "1.33.0", features = ["time", "rt", "macros"] }
