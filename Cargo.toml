@@ -1,0 +1,25 @@
+[package]
+name = "solana-cli-explorer"
+edition = "2021"
+version = "0.1.0"
+authors = ["Cavey Cool <caveycool@gmail.com>"]
+repository = "https://github.com/cavemanloverboy/sol"
+description = "A command line explorer for the Solana Blockchain."
+license = "MIT OR Apache-2.0"
+keywords = ["cli", "crypto", "blockchain", "utility", "rpc"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "sol"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.4.7", features = ["derive"] }
+colored = "2.0.4"
+num-format = "0.4.4"
+prettytable-rs = "0.10.0"
+solana-client = "1.16.24"
+solana-sdk = "1.17.15"
+solana-transaction-status = "1.17.15"
+terminal_size = "0.3.0"
+tokio = { version = "1.33.0", features = ["time", "rt", "macros"] }
