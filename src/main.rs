@@ -17,13 +17,8 @@ pub struct ExplorerCli {
     #[command(subcommand)]
     command: Command,
 
-    /// Optionally include your RPC endpoint. Use "local", "dev", "main" for default endpoints. Defaults to your Solana CLI config file.
-    #[clap(
-        long,
-        short = 'u',
-        default_value = "http://api.mainnet-beta.solana.com",
-        global = true
-    )]
+    /// Specify an RPC endpoint using "local", "dev", or "main" for defaults, or provide a custom URL. Falls back to the Solana CLI configuration if unspecified. Alias: -u
+    #[clap(long, short = 'u', global = true)]
     rpc_url: Option<String>,
 }
 
