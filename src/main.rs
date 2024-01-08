@@ -4,6 +4,7 @@ use clap::Parser;
 
 use solana_cli_config::{Config, CONFIG_FILE};
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
+use utils::get_network;
 
 mod account;
 mod transaction;
@@ -17,18 +18,9 @@ pub struct ExplorerCli {
     #[command(subcommand)]
     command: Command,
 
-    /// Specify an RPC endpoint using "local", "dev", or "main" for defaults, or provide a custom URL. Falls back to the Solana CLI configuration if unspecified. Alias: -u
+    /// Optionally include your RPC endpoint. Use "local", "dev", "main" for default endpoints. Defaults to your Solana CLI config file.
     #[clap(long, short = 'u', global = true)]
     rpc_url: Option<String>,
-}
-
-pub fn get_network(network_str: &str) -> &str {
-    match network_str {
-        "devnet" | "dev" | "d" => "https://api.devnet.solana.com",
-        "mainnet" | "main" | "m" | "mainnet-beta" => "https://api.mainnet-beta.solana.com",
-        "localnet" | "localhost" | "l" | "local" => "http://localhost:8899",
-        _ => network_str,
-    }
 }
 
 #[derive(Debug, Parser, Clone)]
