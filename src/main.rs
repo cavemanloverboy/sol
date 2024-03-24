@@ -31,7 +31,7 @@ pub enum Command {
     /// Provide a transaction signature to inspect status, accounts, logs.
     Transaction(Transaction),
 
-    /// Provide an account pubkey to inspect account contents (to be implemented)
+    /// Provide an account pubkey to inspect account contents
     Account(Account),
 }
 
