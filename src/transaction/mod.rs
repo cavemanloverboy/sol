@@ -18,7 +18,10 @@ use solana_transaction_status::{
     UiTransactionEncoding, UiTransactionStatusMeta,
 };
 
-use crate::{utils::get_network, Transaction};
+use crate::{
+    utils::{get_network, insert_newlines},
+    Transaction,
+};
 
 pub async fn handler(rpc_url: String, transaction: Transaction) {
     // Build RPC Client
@@ -283,23 +286,6 @@ impl ParsedTransaction {
         table_of_tables.set_format(*FORMAT_NO_BORDER_LINE_SEPARATOR);
         table_of_tables.printstd();
     }
-}
-
-#[inline(always)]
-fn insert_newlines(s: &str, n: usize) -> String {
-    let mut result = String::new();
-    let mut counter = 0;
-
-    for c in s.chars() {
-        if counter == n {
-            result.push('\n');
-            counter = 0;
-        }
-        result.push(c);
-        counter += 1;
-    }
-
-    result
 }
 
 #[inline(always)]
