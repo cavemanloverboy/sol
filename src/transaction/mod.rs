@@ -263,14 +263,6 @@ impl ParsedTransaction {
         let opt_log_messages: Option<Vec<String>> = self.meta.log_messages.into();
         if let Some(log_msgs) = opt_log_messages {
             for log in log_msgs {
-                // let mut rem: &str = &log;
-                // let mut curr = rem;
-                // while rem.len() > LOG_MAX_WIDTH {
-                //     (curr, rem) = rem.split_at(LOG_MAX_WIDTH);
-                //     // logs_table.add_row(row)
-                // }
-                // curr = rem;
-                // logs_table.add_row(row![log]);
                 logs_table.add_row(row![insert_newlines(&log, width)]);
             }
         }
