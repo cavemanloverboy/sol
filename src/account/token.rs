@@ -2,7 +2,7 @@
 
 use prettytable::{format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR, row, Table};
 use solana_client::nonblocking::rpc_client::RpcClient as Client;
-use solana_sdk::{account::Account, program_pack::Pack, pubkey::Pubkey};
+use solana_sdk::{account::Account, program_option::COption, program_pack::Pack, pubkey::Pubkey};
 use spl_token_2022::extension::{BaseStateWithExtensions, ExtensionType};
 use spl_type_length_value::variable_len_pack::VariableLenPack;
 
@@ -119,9 +119,14 @@ impl TokenProgramAccount {
                     &token_account.mint,
                     symbol,
                 ),
-                TokenkegAccount::MintAccount(mint_account) => {
-                    print_mint_account(key, mint_account.supply, mint_account.decimals, &[])
-                }
+                TokenkegAccount::MintAccount(mint_account) => print_mint_account(
+                    key,
+                    mint_account.supply,
+                    mint_account.decimals,
+                    &unwrap_coption_pubkey(mint_account.mint_authority),
+                    &unwrap_coption_pubkey(mint_account.freeze_authority),
+                    &[],
+                ),
             },
             TokenProgramAccount::Token22(account) => match account {
                 Token22Account::TokenAccount {
@@ -138,11 +143,23 @@ impl TokenProgramAccount {
                 Token22Account::MintAccount {
                     mint_account,
                     extensions,
-                } => {
-                    print_mint_account(key, mint_account.supply, mint_account.decimals, &extensions)
-                }
+                } => print_mint_account(
+                    key,
+                    mint_account.supply,
+                    mint_account.decimals,
+                    &unwrap_coption_pubkey(mint_account.mint_authority),
+                    &unwrap_coption_pubkey(mint_account.freeze_authority),
+                    &extensions,
+                ),
             },
         }
+    }
+}
+
+fn unwrap_coption_pubkey(pubkey: COption<Pubkey>) -> Pubkey {
+    match pubkey {
+        COption::Some(pubkey) => pubkey,
+        COption::None => Pubkey::new_from_array([0; 32]),
     }
 }
 
@@ -173,11 +190,20 @@ fn print_token_account(
     tables.printstd();
 }
 
-fn print_mint_account(key: &Pubkey, supply: u64, decimals: u8, extensions: &[ExtensionType]) {
+fn print_mint_account(
+    key: &Pubkey,
+    supply: u64,
+    decimals: u8,
+    mint_authority_key: &Pubkey,
+    freeze_authority_key: &Pubkey,
+    extensions: &[ExtensionType],
+) {
     let mut mint_account_table = Table::new();
     mint_account_table.set_titles(row![c->"Mint Account", key]);
     mint_account_table.add_row(row![c->"Decimals", decimals]);
     mint_account_table.add_row(row![c->"Supply", display_balance(supply, decimals as usize)]);
+    mint_account_table.add_row(row![c->"Mint Authority", mint_authority_key]);
+    mint_account_table.add_row(row![c->"Freeze Authority", freeze_authority_key]);
     for (i, ext) in extensions.into_iter().enumerate() {
         mint_account_table.add_row(row![c->format!("Extension {}", i + 1), format!("{ext:?}")]);
     }
