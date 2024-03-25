@@ -1,7 +1,7 @@
 [package]
 name = "solana-cli-explorer"
 edition = "2021"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Cavey Cool <caveycool@gmail.com>"]
 repository = "https://github.com/cavemanloverboy/sol"
 description = "A command line explorer for the Solana Blockchain."
