@@ -123,8 +123,8 @@ impl TokenProgramAccount {
                     key,
                     mint_account.supply,
                     mint_account.decimals,
-                    &unwrap_coption_pubkey(mint_account.mint_authority),
-                    &unwrap_coption_pubkey(mint_account.freeze_authority),
+                    unwrap_coption_pubkey(mint_account.mint_authority),
+                    unwrap_coption_pubkey(mint_account.freeze_authority),
                     &[],
                 ),
             },
@@ -147,8 +147,8 @@ impl TokenProgramAccount {
                     key,
                     mint_account.supply,
                     mint_account.decimals,
-                    &unwrap_coption_pubkey(mint_account.mint_authority),
-                    &unwrap_coption_pubkey(mint_account.freeze_authority),
+                    unwrap_coption_pubkey(mint_account.mint_authority),
+                    unwrap_coption_pubkey(mint_account.freeze_authority),
                     &extensions,
                 ),
             },
@@ -156,10 +156,10 @@ impl TokenProgramAccount {
     }
 }
 
-fn unwrap_coption_pubkey(pubkey: COption<Pubkey>) -> Pubkey {
+fn unwrap_coption_pubkey(pubkey: COption<Pubkey>) -> Cow<'static, str> {
     match pubkey {
-        COption::Some(pubkey) => pubkey,
-        COption::None => Pubkey::new_from_array([0; 32]),
+        COption::Some(pubkey) => Cow::Owned(pubkey.to_string()),
+        COption::None => Cow::Borrowed("None"),
     }
 }
 
@@ -194,8 +194,8 @@ fn print_mint_account(
     key: &Pubkey,
     supply: u64,
     decimals: u8,
-    mint_authority_key: &Pubkey,
-    freeze_authority_key: &Pubkey,
+    mint_authority_key: Cow<'static, str>,
+    freeze_authority_key: Cow<'static, str>,
     extensions: &[ExtensionType],
 ) {
     let mut mint_account_table = Table::new();
@@ -251,7 +251,7 @@ pub struct TokenAccountBalance {
 
 type UiAmount = String;
 
-use std::str::FromStr;
+use std::{borrow::Cow, str::FromStr};
 macro_rules! from_str {
     ($x:expr) => {
         FromStr::from_str(&$x.as_str().unwrap()).unwrap()
