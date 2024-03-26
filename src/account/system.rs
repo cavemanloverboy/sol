@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use futures::future::join_all;
 use prettytable::{format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR, row, Table};
 use solana_account_decoder::UiAccountData;
 use solana_client::{
@@ -27,23 +30,33 @@ impl<'a> SystemAccount<'a> {
         }
 
         // Check if this account has tokenkeg accounts
-        let tokenkeg_accounts = client
+        let tokenkeg_accounts_futures = client
             .get_token_accounts_by_owner(key, TokenAccountsFilter::ProgramId(spl_token::ID))
             .await
             .unwrap()
             .into_iter()
-            .map(parse_keyed_account_to_token);
+            .map(parse_keyed_account_to_token)
+            .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
+
+        let tokenkeg_accounts = join_all(tokenkeg_accounts_futures).await;
 
         // Check if this account has token22 accounts
-        let token22_accounts = client
+        let token22_accounts_futures = client
             .get_token_accounts_by_owner(key, TokenAccountsFilter::ProgramId(spl_token_2022::ID))
             .await
             .unwrap()
             .into_iter()
-            .map(parse_keyed_account_to_token);
+            .map(parse_keyed_account_to_token)
+            .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
+
+        let token22_accounts = join_all(token22_accounts_futures).await;
 
         // Collect all accounts
-        let token_accounts = tokenkeg_accounts.chain(token22_accounts).collect();
+        let token_accounts: Vec<TokenAccountBalance> = tokenkeg_accounts
+            .iter()
+            .chain(token22_accounts.iter())
+            .cloned()
+            .collect();
 
         Some(ParsedAccount::System(SystemAccount {
             account,
@@ -67,7 +80,11 @@ impl<'a> SystemAccount<'a> {
             let meta_or_mint = balance.mint;
             token_account_table.add_row(row![
                 balance.key,
-                meta_or_mint,
+                if let Some(symbol) = balance.symbol {
+                    symbol
+                } else {
+                    meta_or_mint
+                },
                 balance.balance,
                 balance.program
             ]);
@@ -90,5 +107,34 @@ fn parse_keyed_account_to_token(keyed_account: RpcKeyedAccount) -> TokenAccountB
             TokenAccountBalance::parse_validated_json(json, keyed_account.pubkey)
         }
         _ => unimplemented!("unused right now"),
+    }
+}
+
+async fn get_symbol_for_token_account(
+    account: &TokenAccountBalance,
+    client: &Client,
+) -> TokenAccountBalance {
+    let meta_or_mint: String = account.mint.to_string();
+
+    let mint_acc_key: Pubkey = match Pubkey::from_str(&meta_or_mint) {
+        Ok(key) => key,
+        Err(_) => return account.clone(), // or handle the error appropriately
+    };
+
+    let mpl_metadata_key = mpl_token_metadata::accounts::Metadata::find_pda(&mint_acc_key).0;
+
+    let symbol = client
+        .get_account_data(&mpl_metadata_key)
+        .await
+        .map(|data| {
+            let metadata = mpl_token_metadata::accounts::Metadata::from_bytes(&data);
+
+            metadata.unwrap().symbol
+        })
+        .ok();
+
+    TokenAccountBalance {
+        symbol,
+        ..account.clone()
     }
 }
