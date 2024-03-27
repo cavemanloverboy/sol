@@ -8,6 +8,8 @@ use solana_client::{
     rpc_response::RpcKeyedAccount,
 };
 use solana_sdk::{account::Account, pubkey::Pubkey, system_program};
+use spl_token_2022::extension::BaseStateWithExtensions;
+use spl_type_length_value::variable_len_pack::VariableLenPack;
 
 use crate::utils::display_balance;
 
@@ -132,7 +134,7 @@ async fn get_symbol_for_token_account(
 
     let mpl_metadata_key = mpl_token_metadata::accounts::Metadata::find_pda(&mint_acc_key).0;
 
-    let symbol = client
+    let mut symbol = client
         .get_account_data(&mpl_metadata_key)
         .await
         .map(|data| {
@@ -141,6 +143,22 @@ async fn get_symbol_for_token_account(
             metadata.unwrap().symbol
         })
         .ok();
+
+    if symbol.is_none() {
+        use spl_token_metadata_interface::state::TokenMetadata;
+        let mint_account_data = client.get_account_data(&mint_acc_key).await.unwrap();
+        let mint_account = spl_token_2022::extension::StateWithExtensions::<
+            spl_token_2022::state::Mint,
+        >::unpack(&mint_account_data)
+        .unwrap();
+
+        if let Ok(token_metadata) = mint_account
+            .get_extension_bytes::<TokenMetadata>()
+            .and_then(<TokenMetadata as VariableLenPack>::unpack_from_slice)
+        {
+            symbol.replace(token_metadata.symbol);
+        }
+    }
 
     TokenAccountBalance {
         symbol,
