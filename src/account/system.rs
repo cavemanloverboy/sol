@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
 use futures::future::join_all;
 use prettytable::{format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR, row, Table};
@@ -52,11 +52,19 @@ impl<'a> SystemAccount<'a> {
         let token22_accounts = join_all(token22_accounts_futures).await;
 
         // Collect all accounts
-        let token_accounts: Vec<TokenAccountBalance> = tokenkeg_accounts
+        let mut token_accounts: Vec<TokenAccountBalance> = tokenkeg_accounts
             .iter()
             .chain(token22_accounts.iter())
             .cloned()
             .collect();
+
+        // Sort tokens by symbol
+        token_accounts.sort_by(|a, b| match (&a.symbol, &b.symbol) {
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (Some(a_sym), Some(b_sym)) => a_sym.cmp(b_sym),
+            (None, None) => Ordering::Equal,
+        });
 
         Some(ParsedAccount::System(SystemAccount {
             account,
@@ -110,6 +118,7 @@ fn parse_keyed_account_to_token(keyed_account: RpcKeyedAccount) -> TokenAccountB
     }
 }
 
+// Helper function to fetch symbol for given token account
 async fn get_symbol_for_token_account(
     account: &TokenAccountBalance,
     client: &Client,
