@@ -18,7 +18,7 @@ pub struct ExplorerCli {
     #[command(subcommand)]
     command: Command,
 
-    /// Specify your RPC endpoint with shortcuts (l=local, d=dev, m=main, t=test) or full names. Defaults to Solana CLI config. Alias: -u
+    /// Specify your RPC endpoint with shortcuts (l=localnet, d=devnet, m=mainnet, t=testnet). Defaults to Solana CLI config. Alias: -u
     #[clap(long, short = 'u', global = true)]
     rpc_url: Option<String>,
 }
