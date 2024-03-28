@@ -140,26 +140,27 @@ async fn get_symbol_for_token_account(
     let mut symbol = client
         .get_account_data(&mpl_metadata_key)
         .await
-        .map(|data| {
+        .ok()
+        .and_then(|data| {
             let metadata = mpl_token_metadata::accounts::Metadata::from_bytes(&data);
 
-            metadata.unwrap().symbol
-        })
-        .ok();
+            metadata.map(|meta| meta.symbol).ok()
+        });
 
     if symbol.is_none() {
         use spl_token_metadata_interface::state::TokenMetadata;
-        let mint_account_data = client.get_account_data(&mint_acc_key).await.unwrap();
-        let mint_account = spl_token_2022::extension::StateWithExtensions::<
-            spl_token_2022::state::Mint,
-        >::unpack(&mint_account_data)
-        .unwrap();
+        if let Ok(mint_account) = client.get_account(&mint_acc_key).await {
+            let mint = spl_token_2022::extension::StateWithExtensions::<
+                spl_token_2022::state::Mint,
+            >::unpack(&mint_account.data)
+            .unwrap();
 
-        if let Ok(token_metadata) = mint_account
-            .get_extension_bytes::<TokenMetadata>()
-            .and_then(<TokenMetadata as VariableLenPack>::unpack_from_slice)
-        {
-            symbol.replace(token_metadata.symbol);
+            if let Ok(token_metadata) = mint
+                .get_extension_bytes::<TokenMetadata>()
+                .and_then(<TokenMetadata as VariableLenPack>::unpack_from_slice)
+            {
+                symbol.replace(token_metadata.symbol);
+            }
         }
     }
 
