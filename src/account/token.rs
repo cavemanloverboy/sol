@@ -247,6 +247,7 @@ pub struct TokenAccountBalance {
     pub balance: UiAmount,
     pub mint: String,
     pub program: &'static str,
+    pub symbol: Option<String>,
 }
 
 type UiAmount = String;
@@ -271,6 +272,7 @@ impl TokenAccountBalance {
                 program: "spl-token",
                 balance: from_str!(info["tokenAmount"]["uiAmountString"]),
                 mint: from_str!(info["mint"]),
+                symbol: None,
             }
         } else if json.program == "spl-token-2022" {
             TokenAccountBalance {
@@ -278,6 +280,7 @@ impl TokenAccountBalance {
                 program: "spl-token",
                 balance: from_str!(info["tokenAmount"]["uiAmountString"]),
                 mint: from_str!(info["mint"]),
+                symbol: None,
             }
         } else {
             unimplemented!("scaffolded for other token programs... {}", json.program)
