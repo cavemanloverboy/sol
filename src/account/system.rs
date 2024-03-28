@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, str::FromStr};
 
-use futures::future::join_all;
+use futures::StreamExt;
 use prettytable::{format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR, row, Table};
 use solana_account_decoder::UiAccountData;
 use solana_client::{
@@ -40,7 +40,11 @@ impl<'a> SystemAccount<'a> {
             .map(parse_keyed_account_to_token)
             .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
 
-        let tokenkeg_accounts = join_all(tokenkeg_accounts_futures).await;
+        let mut token_accounts: Vec<TokenAccountBalance> =
+            futures::stream::iter(tokenkeg_accounts_futures)
+                .buffer_unordered(10)
+                .collect()
+                .await;
 
         // Check if this account has token22 accounts
         let token22_accounts_futures = client
@@ -51,14 +55,13 @@ impl<'a> SystemAccount<'a> {
             .map(parse_keyed_account_to_token)
             .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
 
-        let token22_accounts = join_all(token22_accounts_futures).await;
-
         // Collect all accounts
-        let mut token_accounts: Vec<TokenAccountBalance> = tokenkeg_accounts
-            .iter()
-            .chain(token22_accounts.iter())
-            .cloned()
-            .collect();
+        token_accounts.extend(
+            futures::stream::iter(token22_accounts_futures)
+                .buffer_unordered(10)
+                .collect::<Vec<_>>()
+                .await,
+        );
 
         // Sort tokens by symbol
         token_accounts.sort_by(|a, b| match (&a.symbol, &b.symbol) {
