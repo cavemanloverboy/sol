@@ -153,4 +153,4 @@ Output:
 ```
 
 # Future Work
-Presently, this cli is only a transaction explorer. We hope to support account and block queries in the future.
+Presently, this cli is only a transaction and account explorer. We hope to support block queries and other queries in the future.
