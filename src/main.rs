@@ -2,7 +2,9 @@ use std::str::FromStr;
 
 use clap::Parser;
 
+use solana_cli_config::{Config, CONFIG_FILE};
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
+use utils::get_network;
 
 mod account;
 mod transaction;
@@ -16,14 +18,9 @@ pub struct ExplorerCli {
     #[command(subcommand)]
     command: Command,
 
-    /// The url/endpoint to use for any rpc requests.
-    #[arg(
-        long,
-        short = 'u',
-        default_value = "http://api.mainnet-beta.solana.com",
-        global = true
-    )]
-    rpc_url: String,
+    /// Specify your RPC endpoint with shortcuts (l=localnet, d=devnet, m=mainnet, t=testnet). Defaults to Solana CLI config. Alias: -u
+    #[clap(long, short = 'u', global = true)]
+    rpc_url: Option<String>,
 }
 
 #[derive(Debug, Parser, Clone)]
@@ -52,9 +49,19 @@ pub struct Account {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args = ExplorerCli::parse();
+    let config = match CONFIG_FILE.as_ref() {
+        Some(config_file) => Config::load(config_file).unwrap_or_else(|_| {
+            println!("Failed to load config file: {}", config_file);
+            Config::default()
+        }),
+        None => Config::default(),
+    };
+    let network_url = &get_network(&args.rpc_url.unwrap_or(config.json_rpc_url)).to_string();
 
     match args.command {
-        Command::Transaction(transaction) => transaction::handler(args.rpc_url, transaction).await,
-        Command::Account(account) => account::handler(args.rpc_url, account).await,
+        Command::Transaction(transaction) => {
+            transaction::handler(network_url.to_string(), transaction).await
+        }
+        Command::Account(account) => account::handler(network_url.to_string(), account).await,
     }
 }
