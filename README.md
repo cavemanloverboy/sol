@@ -1,17 +1,41 @@
-# `sol`: A command line explorer for the Solana Blockchain!
+# `sol`: A command line explorer for the Solana Blockchain
 
+## Installation
 
-### Installation
 1) From Source: clone the repo, and run `cargo install --path .` from within the root of the repository
 2) From crates.io: `cargo install solana-cli-explorer`
 
+### Usage
+
+See the help for possible queries and arguments:
+
+```text
+$ sol --help
+A command line explorer for the Solana blockchain! Inspect transactions and accounts with this explorer!
+
+Usage: sol [OPTIONS] <COMMAND>
+
+Commands:
+  transaction  Provide a transaction signature to inspect status, accounts, logs
+  account      Provide an account pubkey to inspect account contents
+  block        Provide a block's slot to inspect its contents
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -u, --rpc-url <RPC_URL>  The url/endpoint to use for any rpc requests [default: http://api.mainnet-beta.solana.com]
+  -h, --help               Print help
+  -V, --version            Print version
+```
 
 ### Example Usage
-```
+
+```text
 sol transaction 2bLs9yrtAsVyDpSBHLntf8YpDQ9YrQNgr4iKwqBfJdoe9v7eZEFVm5dQD7CjExEMngD7h6c1nxrT8MAhFU8LnB6X
 ```
+
 Output:
-```
+
+```text
 
                                  +------------------------+----------------------------------------------+ 
                                  |  Transaction Overview  |                                              | 
@@ -153,4 +177,5 @@ Output:
 ```
 
 # Future Work
-Presently, this cli is only a transaction and account explorer. We hope to support block queries and other queries in the future.
+
+Presently, this cli is only a transaction, account, and block explorer. We hope to support other queries in the future.
