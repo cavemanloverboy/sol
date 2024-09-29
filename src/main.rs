@@ -5,6 +5,7 @@ use clap::Parser;
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
 
 mod account;
+mod block;
 mod transaction;
 mod utils;
 
@@ -33,6 +34,9 @@ pub enum Command {
 
     /// Provide an account pubkey to inspect account contents
     Account(Account),
+
+    /// Provide a block's slot to inspect its contents
+    Block(Block),
 }
 
 #[derive(Debug, Parser, Clone)]
@@ -49,6 +53,20 @@ pub struct Account {
     pubkey: Pubkey,
 }
 
+#[derive(Debug, Parser, Clone)]
+pub struct Block {
+    /// The slot of the block to inspect
+    #[clap()]
+    start: u64,
+
+    #[clap()]
+    end: Option<u64>,
+
+    /// Shows a very detailed view of a block
+    #[clap(long, short, default_value_t = false)]
+    verbose: bool,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args = ExplorerCli::parse();
@@ -56,5 +74,6 @@ async fn main() {
     match args.command {
         Command::Transaction(transaction) => transaction::handler(args.rpc_url, transaction).await,
         Command::Account(account) => account::handler(args.rpc_url, account).await,
+        Command::Block(block) => block::handler(args.rpc_url, block).await,
     }
 }
