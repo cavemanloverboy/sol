@@ -113,9 +113,8 @@ pub async fn handler(rpc_url: String, block: crate::Block) {
             println!();
             continue 'slots;
         }
+        println!("failed to fetch block");
     }
-
-    println!("failed to fetch block");
 }
 
 pub struct ParsedBlock {
