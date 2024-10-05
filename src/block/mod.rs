@@ -77,6 +77,7 @@ pub async fn handler(rpc_url: String, block: crate::Block) {
             // Header table
             let mut header_table = Table::new();
             header_table.add_row(row![c->"Slot", slot]);
+            header_table.add_row(row![c->"Parent Slot", fetched_block.parent_slot]);
             header_table.add_row(row![c->"Leader", &parsed_block.leader]);
             header_table.add_row(row![c->"Rewards", format!("◎{}.{:09}", parsed_block.rewards, parsed_block.rewards_sub)]);
             header_table.add_row(row![c->"Blockhash", &fetched_block.blockhash]);
