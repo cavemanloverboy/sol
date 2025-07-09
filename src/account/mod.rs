@@ -45,9 +45,10 @@ async fn parse_account<'a>(
         .unwrap_or(ParsedAccount::Other(account))
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum ParsedAccount<'a> {
     System(SystemAccount<'a>),
-    TokenProgram(Box<TokenProgramAccount>),
+    TokenProgram(TokenProgramAccount),
     Other(&'a Account),
 }
 
@@ -112,19 +113,19 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token::state::Mint,
         symbol: Option<String>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Tokenkeg(
+        ParsedAccount::TokenProgram(TokenProgramAccount::Tokenkeg(
             TokenkegAccount::TokenAccount {
                 token_account,
                 mint_account,
                 symbol,
             },
-        )))
+        ))
     }
 
     #[inline(always)]
     pub fn tokenkeg_mint(mint: spl_token::state::Mint) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Tokenkeg(
-            TokenkegAccount::MintAccount(mint),
+        ParsedAccount::TokenProgram(TokenProgramAccount::Tokenkeg(TokenkegAccount::MintAccount(
+            mint,
         )))
     }
 
@@ -134,13 +135,11 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token_2022::state::Mint,
         symbol: Option<String>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Token22(
-            Token22Account::TokenAccount {
-                token_account,
-                mint_account,
-                symbol,
-            },
-        )))
+        ParsedAccount::TokenProgram(TokenProgramAccount::Token22(Token22Account::TokenAccount {
+            token_account,
+            mint_account,
+            symbol,
+        }))
     }
 
     #[inline(always)]
@@ -148,11 +147,9 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token_2022::state::Mint,
         extensions: Vec<ExtensionType>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Token22(
-            Token22Account::MintAccount {
-                mint_account,
-                extensions,
-            },
-        )))
+        ParsedAccount::TokenProgram(TokenProgramAccount::Token22(Token22Account::MintAccount {
+            mint_account,
+            extensions,
+        }))
     }
 }
