@@ -7,7 +7,7 @@ use solana_client::{
     nonblocking::rpc_client::RpcClient as Client, rpc_request::TokenAccountsFilter,
     rpc_response::RpcKeyedAccount,
 };
-use solana_sdk::{account::Account, pubkey::Pubkey, system_program};
+use solana_sdk::{account::Account, pubkey::Pubkey};
 use spl_token_2022::extension::BaseStateWithExtensions;
 use spl_type_length_value::variable_len_pack::VariableLenPack;
 
@@ -27,7 +27,7 @@ impl<'a> SystemAccount<'a> {
         key: &'a Pubkey,
         client: &Client,
     ) -> Option<ParsedAccount<'a>> {
-        if account.owner != system_program::ID {
+        if account.owner != solana_system_interface::program::ID {
             return None;
         }
 
@@ -38,7 +38,7 @@ impl<'a> SystemAccount<'a> {
             .unwrap()
             .into_iter()
             .map(parse_keyed_account_to_token)
-            .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
+            .map(|account| async move { get_symbol_for_token_account(&account, client).await });
 
         let mut token_accounts: Vec<TokenAccountBalance> =
             futures::stream::iter(tokenkeg_accounts_futures)
@@ -53,7 +53,7 @@ impl<'a> SystemAccount<'a> {
             .unwrap()
             .into_iter()
             .map(parse_keyed_account_to_token)
-            .map(|account| async move { get_symbol_for_token_account(&account, &client).await });
+            .map(|account| async move { get_symbol_for_token_account(&account, client).await });
 
         // Collect all accounts
         token_accounts.extend(

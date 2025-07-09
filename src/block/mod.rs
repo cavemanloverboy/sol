@@ -58,10 +58,7 @@ pub async fn handler(rpc_url: String, block: crate::Block) {
 
                     for ix in ixs {
                         program_map
-                            .entry(
-                                ix.program_id(decoded_tx.message.static_account_keys())
-                                    .clone(),
-                            )
+                            .entry(*ix.program_id(decoded_tx.message.static_account_keys()))
                             .and_modify(|c: &mut u64| {
                                 *c += 1;
                             })
@@ -92,8 +89,7 @@ pub async fn handler(rpc_url: String, block: crate::Block) {
             if block.verbose {
                 let mut program_table = Table::new();
 
-                let mut program_invocations: Vec<(Pubkey, u64)> =
-                    program_map.into_iter().map(|kv| kv).collect();
+                let mut program_invocations: Vec<(Pubkey, u64)> = program_map.into_iter().collect();
                 program_invocations.sort_by_key(|kv| Reverse(kv.1));
 
                 program_table.add_row(row!["Program", "Top Level Invocations"]);

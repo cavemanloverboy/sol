@@ -95,7 +95,7 @@ async fn parse_transaction(
                 .iter()
                 .enumerate()
                 .map(|(idx, &account)| {
-                    if legacy.is_writable(idx) {
+                    if legacy.is_maybe_writable(idx, None) {
                         AccountMeta::new(account, legacy.is_signer(idx))
                     } else {
                         AccountMeta::new_readonly(account, legacy.is_signer(idx))
@@ -114,7 +114,7 @@ async fn parse_transaction(
                 .iter()
                 .enumerate()
                 .map(|(idx, &account)| {
-                    if v0.is_maybe_writable(idx) {
+                    if v0.is_maybe_writable(idx, None) {
                         AccountMeta::new(account, message.is_signer(idx))
                     } else {
                         AccountMeta::new_readonly(account, message.is_signer(idx))

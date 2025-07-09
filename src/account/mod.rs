@@ -42,13 +42,12 @@ async fn parse_account<'a>(
         // Then try parse token account
         .or(TokenProgramAccount::parse(account, client).await)
         // Finally, fallback (infallible)
-        .or_else(|| Some(ParsedAccount::Other(account)))
-        .unwrap()
+        .unwrap_or(ParsedAccount::Other(account))
 }
 
 pub enum ParsedAccount<'a> {
     System(SystemAccount<'a>),
-    TokenProgram(TokenProgramAccount),
+    TokenProgram(Box<TokenProgramAccount>),
     Other(&'a Account),
 }
 
@@ -101,7 +100,7 @@ fn other_display(other: &Account, key: &Pubkey) {
     tables.printstd();
 
     let mut stdout = std::io::stdout();
-    stdout.write(data_string.as_bytes()).unwrap();
+    stdout.write_all(data_string.as_bytes()).unwrap();
     stdout.flush().unwrap();
 }
 
@@ -113,19 +112,19 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token::state::Mint,
         symbol: Option<String>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(TokenProgramAccount::Tokenkeg(
+        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Tokenkeg(
             TokenkegAccount::TokenAccount {
                 token_account,
                 mint_account,
                 symbol,
             },
-        ))
+        )))
     }
 
     #[inline(always)]
     pub fn tokenkeg_mint(mint: spl_token::state::Mint) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(TokenProgramAccount::Tokenkeg(TokenkegAccount::MintAccount(
-            mint,
+        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Tokenkeg(
+            TokenkegAccount::MintAccount(mint),
         )))
     }
 
@@ -135,11 +134,13 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token_2022::state::Mint,
         symbol: Option<String>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(TokenProgramAccount::Token22(Token22Account::TokenAccount {
-            token_account,
-            mint_account,
-            symbol,
-        }))
+        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Token22(
+            Token22Account::TokenAccount {
+                token_account,
+                mint_account,
+                symbol,
+            },
+        )))
     }
 
     #[inline(always)]
@@ -147,9 +148,11 @@ impl<'a> ParsedAccount<'a> {
         mint_account: spl_token_2022::state::Mint,
         extensions: Vec<ExtensionType>,
     ) -> ParsedAccount<'a> {
-        ParsedAccount::TokenProgram(TokenProgramAccount::Token22(Token22Account::MintAccount {
-            mint_account,
-            extensions,
-        }))
+        ParsedAccount::TokenProgram(Box::new(TokenProgramAccount::Token22(
+            Token22Account::MintAccount {
+                mint_account,
+                extensions,
+            },
+        )))
     }
 }

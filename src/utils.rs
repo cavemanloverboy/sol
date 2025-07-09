@@ -22,7 +22,7 @@ pub fn display_balance(atoms: u64, decimals: usize) -> String {
 
         // Insert commas every three digits from the right
         for (i, ch) in before_decimal.chars().enumerate() {
-            if i > 0 && (before_decimal.len() - i) % 3 == 0 {
+            if i > 0 && (before_decimal.len() - i).is_multiple_of(3) {
                 result.push(',');
             }
             result.push(ch);

@@ -204,7 +204,7 @@ fn print_mint_account(
     mint_account_table.add_row(row![c->"Supply", display_balance(supply, decimals as usize)]);
     mint_account_table.add_row(row![c->"Mint Authority", mint_authority_key]);
     mint_account_table.add_row(row![c->"Freeze Authority", freeze_authority_key]);
-    for (i, ext) in extensions.into_iter().enumerate() {
+    for (i, ext) in extensions.iter().enumerate() {
         mint_account_table.add_row(row![c->format!("Extension {}", i + 1), format!("{ext:?}")]);
     }
 
@@ -277,7 +277,7 @@ impl TokenAccountBalance {
         } else if json.program == "spl-token-2022" {
             TokenAccountBalance {
                 key,
-                program: "spl-token",
+                program: "token-2022",
                 balance: from_str!(info["tokenAmount"]["uiAmountString"]),
                 mint: from_str!(info["mint"]),
                 symbol: None,
