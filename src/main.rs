@@ -17,7 +17,7 @@ pub struct ExplorerCli {
     #[command(subcommand)]
     command: Command,
 
-    /// The url/endpoint to use for any rpc requests.
+    /// The url/endpoint to use for any rpc requests. This can also be set via the RPC_URL environment variable.
     #[arg(
         long,
         short = 'u',
@@ -71,9 +71,15 @@ pub struct Block {
 async fn main() {
     let args = ExplorerCli::parse();
 
+    let rpc_url = if let Ok(rpc_url) = std::env::var("RPC_URL") {
+        rpc_url
+    } else {
+        args.rpc_url
+    };
+
     match args.command {
-        Command::Transaction(transaction) => transaction::handler(args.rpc_url, transaction).await,
-        Command::Account(account) => account::handler(args.rpc_url, account).await,
-        Command::Block(block) => block::handler(args.rpc_url, block).await,
+        Command::Transaction(transaction) => transaction::handler(rpc_url, transaction).await,
+        Command::Account(account) => account::handler(rpc_url, account).await,
+        Command::Block(block) => block::handler(rpc_url, block).await,
     }
 }
