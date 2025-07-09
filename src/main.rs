@@ -71,11 +71,7 @@ pub struct Block {
 async fn main() {
     let args = ExplorerCli::parse();
 
-    let rpc_url = if let Ok(rpc_url) = std::env::var("RPC_URL") {
-        rpc_url
-    } else {
-        args.rpc_url
-    };
+    let rpc_url = std::env::var("RPC_URL").unwrap_or(args.rpc_url);
 
     match args.command {
         Command::Transaction(transaction) => transaction::handler(rpc_url, transaction).await,
